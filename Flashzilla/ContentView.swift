@@ -27,7 +27,7 @@ struct ContentView: View {
                 .resizable()
                 .ignoresSafeArea()
             VStack {
-                Text("Time: \(timeRemaining)")
+                Text("Zeit: \(timeRemaining)")
                     .font(.largeTitle)
                     .foregroundStyle(.white)
                     .padding(.horizontal, 20)
@@ -44,6 +44,15 @@ struct ContentView: View {
                         }
                         .stacked(at: index, in: cards.count)
                     }
+                }
+                .allowsHitTesting(timeRemaining > 0)
+                
+                if cards.isEmpty {  // shows reset Btn after all cards are removed
+                    Button("Wiederholen", action: resetCards)
+                        .padding()
+                        .background(.white)
+                        .foregroundStyle(.black)
+                        .clipShape(.capsule)
                 }
             }
             
@@ -81,7 +90,9 @@ struct ContentView: View {
         }
         .onChange(of: scenePhase) { // triggers timer
             if scenePhase == .active {
-                isActive = true
+                if !cards.isEmpty {
+                    isActive = true
+                }
             } else {
                 isActive = false
             }
@@ -90,13 +101,26 @@ struct ContentView: View {
     
     //MARK: - METHOD - SECTION
     
+    // removes first card from Stack
     func removeCard(at index: Int) {
         cards.remove(at: index)
+        
+        if cards.isEmpty {
+            isActive = false
+        }
+    }
+    
+    // reset Cardstack
+    func resetCards() {
+        cards = Array<Card>(repeating: .example, count: 10)
+        timeRemaining = 100
+        isActive = true
     }
 }
 
 //MARK: - EXTENSIONS - SECTION
 
+// shows multiple Cards in a Stack
 extension View {
     func stacked(at position: Int, in total: Int) -> some View {
         let offset = Double(total - position)
