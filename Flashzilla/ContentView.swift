@@ -6,12 +6,20 @@
 //
 
 import SwiftUI
-
+import Combine
 
 
 struct ContentView: View {
     @Environment(\.accessibilityDifferentiateWithoutColor) var accessibilityDifferentiateWithoutColor
     @State private var cards = Array<Card>(repeating: .example, count: 10)
+    
+    //Timer
+    @State private var timeRemaining = 100
+    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    
+    // tracking is App still active?
+    @Environment(\.scenePhase) var scenePhase
+    @State private var isActive = true // if false timer stopps
     
     var body: some View {
         ZStack {
@@ -19,6 +27,14 @@ struct ContentView: View {
                 .resizable()
                 .ignoresSafeArea()
             VStack {
+                Text("Time: \(timeRemaining)")
+                    .font(.largeTitle)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 5)
+                    .background(.black.opacity(0.75))
+                    .clipShape(.capsule)
+                
                 ZStack {
                     ForEach(0..<cards.count, id: \.self) { index in
                         CardView(card: cards[index]) {
@@ -54,6 +70,20 @@ struct ContentView: View {
                     .font(.largeTitle)
                     .padding()
                 }
+            }
+        }
+        .onReceive(timer) { time in
+            guard isActive else { return }
+            
+            if timeRemaining > 0 {
+                timeRemaining -= 1
+            }
+        }
+        .onChange(of: scenePhase) { // triggers timer
+            if scenePhase == .active {
+                isActive = true
+            } else {
+                isActive = false
             }
         }
     }
